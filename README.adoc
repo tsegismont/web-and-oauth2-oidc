@@ -1,160 +1,187 @@
-= Template and instructions for the Eclipse Vert.x how-tos
-:author: Julien Ponge <julien.ponge@gmail.com>
+= Securing a Web Application with OAuth2/OpenId Connect
+:author: Paulo Lopes <pmlopes@gmail.com>
 :toc:
+
+This how to will show you how to build and secure a simple web vert.x application with Oauth2 and OpenId Connect.
+
+== What you will build
+
+In the first part of the how-to, you will build a secure web application that will use GitHub to authenticate any application user. We will then continue exploring the API and use OpenId Connect to auto discover the security related configuration of the application.
+
+TODO: simple screenshot
+
+== What you need
+
+* A text editor or IDE
+* Java 8 or higher (11 recommended for the extra security algorithms)
+* GitHub account
+
+== Create a Project
+
+Go to start.vertx.io and https://start.vertx.io/starter.zip?groupId=howto&artifactId=oauth-oidc&vertxDependencies=vertx-web&vertx-auth-oauth2,vertx-web-templ-handlebars,vertx-web-client[create a project] with the following dependencies:
+
+* Vert.x Web
+* Oauth2
+* Handlebars template engine
+* Vert.x Web Client
+
+image::images/project.png[width=600]
 
 This repository can be cloned and used as a basis for creating a new Eclipse Vert.x how-to.
 It especially contains the https://jekyllrb.com/[Jekyll] and continuous integration configurations for publishing a how-to as a web page.
 
-== Conventions
 
-Each how-to is a self-contained Git repository of the https://github.com/vertx-howtos[corresponding organisation on GitHub].
+== Basics of Authentication
 
-The how-to document is written using the https://asciidoctor.org/docs/what-is-asciidoc/[Asciidoc] text format in a file called `README.adoc` at the root of the Git repository.
+In this section, we're going to focus on the basics of authentication. Specifically, we're going to create a Java server that implements GitHub's https://docs.github.com/en/developers/apps/authorizing-oauth-apps[web application flow].
 
-The accompanying source code is directly at the root of the Git repository.
-For instance a Maven `pom.xml` is co-located with `README.adoc` at the root of the repository.
 
-Projects should preferably have both Maven and Gradle build descriptors.
-An author who doesn't have knowledge of either of the tools can always ask for contributions.
+== Registering your app
 
-== Structure of a how-to
+First, you'll need to https://github.com/settings/applications/new[register your application]. Every registered OAuth2 application is assigned a unique **Client ID** and **Client Secret**. The Client Secret should **NOT** be shared! That includes checking the string into your repository.
 
-A how-to is not a guide or a mini-book: it must be as concise as possible.
+You can fill out every piece of information however you like, except the **Authorization callback URL**. This is easily the most important piece to setting up your application. It's the callback URL that GitHub returns the user to after successful authentication.
 
-In practice this means that each how-to must focus on a very narrow topic.
-It also means that the text must not deviate from the topic, and that the chosen example must be as simple as possible.
+Since we're running a regular Vert.x Web server, the location of the local instance is set to `http://localhost:8080`. Let's fill in the callback URL as `http://localhost:8080/callback`.
 
-The structure of a how-to must be as follows.
 
-=== What you will build
+== Accepting user authorization
 
-- Explain the example scenario from a functional point of view.
-- Explain what the user can see when running the example.
-- Highlight the different pieces of code to be written and how they fit together.
+Now, let's start filling out our simple server. Open the class `howto.oauth_oidc.MainVerticle` and paste this into it:
 
-=== What you need
-
-- List all required tools to edit, build and run the how-to.
-- Do not hesitate to point to third-party resources (e.g., if you need Docker, say why you need it and point to its installation documentation).
-
-=== Create a project
-
-- Explain how to create the project.
-- Show the Maven / Gradle build descriptors.
-- For any third-party tool (e.g., running a database with Docker), also have a subsection to explain this.
-
-=== Implementation sections
-
-- Make one or multiple sections to show the implementation.
-- Make use of Asciidoc source code comments to highlight specific parts of the code.
-- The code must be included using https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/#source-code[Asciidoc directives]. Remember that you can include fragments of code by using delimiter tags.
-
-=== Running the application
-
-- Always show the various options to run the application.
-
-=== Summary
-
-- Briefly recapitulate what was covered and learned in the how-to.
-
-=== See also
-
-- If possible, link to other how-tos.
-- If judicious, link to Vert.x or third-party documentation.
-
-== How is the website being rendered?
-
-The website is being rendered using Jekyll and the Asciidoctor extension for Jekyll.
-
-There is a https://github.com/vertx-howtos/vertx-howtos-jekyll-theme[Jekyll theme] published as a Ruby Gem, so every how-to uses a common theme.
-
-=== Asciidoctor attributes
-
-The common theme depends on the following attributes to be set right below the title header:
-
-[source,text]
+[source,java]
 ----
-= My awesome how-to
-:page-permalink: /
-:page-github: vertx-howtos/my-howto
+include::src/main/java/howto/oauth_oidc/MainVerticle.java[]
+----
+<1> We will read the secrets as environment variables
+<2> In order to use a handlebars we first need to create an engine
+<3> To simplify the development of the web components we use a Router to route all HTTP requests to organize our code in a reusable way.
+<4> Entry point to the application, this will render a custom template.
+<5> The protected resource (not really protected yet)
+<6> We now configure the oauth2 handler, it will setup the callback handler (as defined in GitHub Application panel)
+<7> For this resource we require that users have the authority to retrieve the user emails
+<8> Start up the server
+
+Your client ID and client secret keys come from https://github.com/settings/developers[your application's configuration page]. You should **NEVER**, **EVER** store these values in your git repository -- or any other public place, for that matter. We recommend storing them as http://en.wikipedia.org/wiki/Environment_variable#Getting_and_setting_environment_variables[environment variables] -- which is exactly what we've done here.
+
+Notice that the protected resource uses the scope `user:email` to define the scopes requested by the application. For our application, we're requesting `user:email` scope for reading private email addresses later in the how-to.
+
+Next, in the project `resources` create the template `views/index.hbs` and paste this content:
+
+[source,handlebars]
+----
+include::src/main/resources/views/index.hbs[]
 ----
 
-The `page-permalink` attribute ensures that `README.adoc` is rendered as `index.html` rather than `README.adoc`.
+(If you're unfamiliar with how http://handlebarsjs.com/[Handlebars] works, we recommend reading the http://handlebarsjs.com/[Handlebars] guide.)
 
-The `page-github` attribute must contain the joint GitHub organization and repository so it can properly link to the GitHub repository, provide a direct edition link, and more.
+Navigate your browser to http://localhost:8080. After clicking on the link, you should be taken to GitHub, and presented with a dialog that looks something like this::
 
-=== Jekyll configuration
+image::images/authorize.png[width=600]
 
-The Jekyll configuration shall not have to be tweaked much, here is the basic configuration that we use:
+After a successful app authentication, GitHub provides a temporary code value. This code is then `POST`ed back to GitHub in exchange for an `access_token` which is in turn translated to a `User` instance in your vert.x application. All this is taken care for you by the handler.
 
-[source,yaml]
+
+== Checking granted scopes
+
+Before the `User` object is handled to you, if your handler was configured with `authorities` they will be first checked. If they are not present then the whole process is aborted with an `Authorization (403)` error.
+
+However you might want to assert for other granted authorities, in this case you would add a intermediate handler such as:
+
+[source,java]
 ----
-include::_config.yml[]
+AuthorizationHandler.create(
+  PermissionBasedAuthorization      // <1>
+    .create("user:email"))          // <2>
+    .addAuthorizationProvider(ScopeAuthorization.create(" ")))  // <3>
 ----
+<1> Create a kind of authorization, in this case it's a Permission
+<2> The `permission` we want to assert
+<3> The `provider` object will extract the right data from the user and perform the assertion
 
-TIP: When running Jekyll, check the content of the `_site/` folder and adapt the `exclude` items to avoid pushing unnecessary content to the website.
+Case the assertion fails, the router will stop executing and return a `Forbidden` error.
 
-=== Ruby environment
 
-It is strongly recommended to use either https://github.com/rbenv/rbenv[rbenv] or https://rvm.io/[RVM] for your Ruby installation.
+== Making authenticated requests
 
-You will need https://bundler.io/[Bundler] to install all required dependencies:
+At this moment your application is already secure, and you can execute handlers knowing that the users are real GitHub users. You can now execute API calls on behalf of the user. For example, we could update the protected resource to print out the user registered email addresses, and some basic profile information from the `userInfo` end point.
 
+[source,java]
 ----
-$ gem install bundler
+include::src/main/java/howto/oauth_oidc/ProtectedProfileHandler.java[]
 ----
+<1> Get the user information from the OAuth2 userInfo endpoint
+<2> Make an API call on user behalf (using their access token)
 
-You can then let _Bundler_ do the installation work:
+We can do whatever we want with our results. In this case, we'll just dump them straight into protected.hbs:
 
+[source,handlebars]
 ----
-$ bundle install
-----
-
-From time to time you may also update dependencies:
-
-----
-$ bundle update
-----
-
-The dependencies are specified in the `Gemfile` file:
-
-[source,ruby]
-----
-include::Gemfile[]
-----
-
-TIP: Keep the `vertx-howtos-jekyll-theme` dependency up-to-date!
-
-=== Running Jekyll
-
-You can run Jekyll with a full auto-reload experience:
-
-----
-$ bundle exec jekyll server --watch --livereload
+include::src/main/resources/views/protected.hbs[]
 ----
 
-== How is the website being published?
+And you should get a simple screen like this:
 
-The content first needs to be rendered by Jekyll, then the resulting web site files are being pushed to the repository `gh-pages` branch.
-GitHub pages then exposes the content of the `gh-pages` branch as the website.
+image::images/emails.png[width=600]
 
-While you could do this manually, we automate the process with GitHub Actions.
-Pushing to the `master` branch triggers a deployment, and a daily cron job is in place.
+== Implementing "persistent" authentication
 
-== Misc
+It'd be a pretty bad model if we required users to log into the app every single time they needed to access the web page. For example, try navigating directly to http://localhost:8080/protected. You'll get an authentication request over and over.
 
-=== Code style
+What if we could circumvent the entire "click here" process, and just remember that, as long as the user's logged into GitHub, they should be able to access this application? Hold on to your hat, because that's _exactly what we're going to do_.
 
-There is a `.editorconfig` file in this template repository with the 2-space indentation style that we prefer in Vert.x.
+Our little server above is rather simple. In order to wedge in some intelligent authentication, we're going to switch over to using sessions for storing tokens. This will make authentication transparent to the user.
 
-In any case, favour readability in samples:
+This can be achieved with the stock handlers, so our server file would be:
 
-- do not hesitate to use blank lines,
-- do not over-engineer,
-- use explicit short private methods rather than complicated lambdas expressions.
+[source,java]
+----
+include::src/main/java/howto/oauth_oidc/MainPersistentVerticle.java[tags=persistent]
+----
+<1> A session handler using in memory storage will now be able to keep track of active users and you will not need to re-login on each request.
 
-=== Asciidoc style
+== OpenID Connect
 
-Asciidoc does not enforce any style.
+Until this moment, we have been covering, plain `OAuth2`. Vert.x also allows you to use https://openid.net/connect/[OpenID Connect].
 
-We recommended that you follow the https://asciidoctor.org/docs/asciidoc-recommended-practices/[Asciidoctor recommended practices], and especially the https://asciidoctor.org/docs/asciidoc-recommended-practices/#one-sentence-per-line["One sentence per line"] rule.
+In a nutshell, OpenID Connect is a simple identity layer on top of the OAuth 2.0 protocol. The main differences are that tokens, are not opaque strings, but encoded in JSON Web Token format. This allows applications to have more fine-grained control on permissions/roles and reduce the number of round-trips to the IdP server. This also means that you will need to know much more information at front to start the application. For example, a few extra HTTP endpoints, security keys, etc...
+
+Albeit this looking more complex, OpenID, defines a discovery API, which simplifies the setup to just a few lines of code. Instead of having you to know all the properties you can just (for example) discover the configuration if you're using https://www.keycloak.org/[keycloak]:
+
+[source,java]
+----
+include::src/main/java/howto/oauth_oidc/KeycloakDiscoverVerticle.java[]
+----
+<1> Keycloak can host multiple applications so we can specify a tenant name
+<2> Keycloak server URL
+
+The discovery process will perform the configuration of all known HTTP endpoints, and load security keys used to validated tokens. Once ready  an instance of `OAuth2Auth` is returned like before. It is important here that you did not have to load and configure all this manually.
+
+`Discovery` is a standard so you can use it with other services (that support it), for example (in no particular order):
+
+* Microsoft Azure
+* Google Cloud
+* Salesforce
+* Amazon Incognito
+* etc...
+
+
+== Summary
+
+In this how-to we covered:
+
+1. Creating a web project
+2. Secure a web application with Oauth2
+3. Invoke secure APIs with WebClient and Oauth2
+4. Persist user session data
+5. Use OpenID Connect
+
+I hope you now can use OAuth2 on your next project!
+
+
+== See also
+
+- https://vertx.io/docs/vertx-core/java/[The Vert.x core APIs documentation]
+- https://vertx.io/docs/vertx-web/java/[The Vert.x web documentation]
+- https://vertx.io/docs/vertx-auth-oauth2/java/[The Vert.x OAuth2 documentation]
+- https://vertx.io/docs/vertx-web-client/java/[The Vert.x web client documentation]

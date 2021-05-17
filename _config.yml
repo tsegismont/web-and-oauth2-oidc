@@ -1,5 +1,5 @@
 theme: vertx-howtos-jekyll-theme
-url: https://vertx-howtos.github.io/HOWTO-ID
+url: https://vertx-howtos.github.io/web-and-oauth2-oidc
 
 asciidoctor:
   attributes:
@@ -10,8 +10,6 @@ exclude:
   - LICENSE
   - build*
   - pom.xml
-  - settings.gradle.kts
   - target
-  - gradle*
   - src
   - Gemfile*
