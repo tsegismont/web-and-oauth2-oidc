@@ -9,6 +9,7 @@ bundle exec jekyll build
 echo "⚙️  Copying the files"
 rm -rf _gh_pages/*
 cp -R _site/* _gh_pages/
+mv _gh_pages/README.html _gh_pages/index.html || true
 
 echo "🚀 Commit and push"
 cd _gh_pages || exit
