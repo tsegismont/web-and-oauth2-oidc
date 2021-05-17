@@ -76,9 +76,6 @@
 <div class="paragraph">
 <p>In the first part of the how-to, you will build a secure web application that will use GitHub to authenticate any application user. We will then continue exploring the API and use OpenId Connect to auto discover the security related configuration of the application.</p>
 </div>
-<div class="paragraph">
-<p>TODO: simple screenshot</p>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -123,12 +120,8 @@
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="images/project.png" alt="project" width="600">
+<img src="project.png" alt="project" width="600">
 </div>
-</div>
-<div class="paragraph">
-<p>This repository can be cloned and used as a basis for creating a new Eclipse Vert.x how-to.
-It especially contains the <a href="https://jekyllrb.com/">Jekyll</a> and continuous integration configurations for publishing a how-to as a web page.</p>
 </div>
 </div>
 </div>
@@ -286,13 +279,13 @@ It especially contains the <a href="https://jekyllrb.com/">Jekyll</a> and contin
 <div class="paragraph">
 <p>(If you&#8217;re unfamiliar with how <a href="http://handlebarsjs.com/">Handlebars</a> works, we recommend reading the <a href="http://handlebarsjs.com/">Handlebars</a> guide.)</p>
 </div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Navigate your browser to <a href="http://localhost:8080" class="bare">http://localhost:8080</a>. After clicking on the link, you should be taken to GitHub, and presented with a dialog that looks something like this</dt>
-<dd>
-<p>image::images/authorize.png[width=600]</p>
-</dd>
-</dl>
+<div class="paragraph">
+<p>Navigate your browser to <a href="http://localhost:8080" class="bare">http://localhost:8080</a>. After clicking on the link, you should be taken to GitHub, and presented with a dialog that looks something like this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="authorize.png" alt="authorize" width="600">
+</div>
 </div>
 <div class="paragraph">
 <p>After a successful app authentication, GitHub provides a temporary code value. This code is then <code>POST`ed back to GitHub in exchange for an `access_token</code> which is in turn translated to a <code>User</code> instance in your vert.x application. All this is taken care for you by the handler.</p>
@@ -445,7 +438,7 @@ It especially contains the <a href="https://jekyllrb.com/">Jekyll</a> and contin
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="images/emails.png" alt="emails" width="600">
+<img src="emails.png" alt="emails" width="600">
 </div>
 </div>
 </div>
@@ -743,7 +736,7 @@ It especially contains the <a href="https://jekyllrb.com/">Jekyll</a> and contin
   <div class="row">
     <div class="col">
       <hr>
-      <p><small>Last published: 2021-05-17 12:26:33 +0000.</small></p>
+      <p><small>Last published: 2021-05-17 12:32:58 +0000.</small></p>
     </div>
   </div>
 </div>
