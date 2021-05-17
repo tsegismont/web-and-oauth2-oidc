@@ -8,7 +8,6 @@ asciidoctor:
 
 exclude:
   - LICENSE
-  - build*
   - pom.xml
   - target
   - src

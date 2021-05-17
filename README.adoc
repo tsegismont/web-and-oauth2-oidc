@@ -73,7 +73,7 @@ Navigate your browser to http://localhost:8080. After clicking on the link, you 
 
 image::authorize.png[width=600]
 
-After a successful app authentication, GitHub provides a temporary code value. This code is then `POST`ed back to GitHub in exchange for an `access_token` which is in turn translated to a `User` instance in your vert.x application. All this is taken care for you by the handler.
+After a successful app authentication, GitHub provides a temporary code value. This code is then posted back to GitHub in exchange for an `access_token` which is in turn translated to a `User` instance in your vert.x application. All this is taken care for you by the handler.
 
 
 == Checking granted scopes
