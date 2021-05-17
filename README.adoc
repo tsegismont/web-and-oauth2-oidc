@@ -8,8 +8,6 @@ This how to will show you how to build and secure a simple web vert.x applicatio
 
 In the first part of the how-to, you will build a secure web application that will use GitHub to authenticate any application user. We will then continue exploring the API and use OpenId Connect to auto discover the security related configuration of the application.
 
-TODO: simple screenshot
-
 == What you need
 
 * A text editor or IDE
@@ -25,11 +23,7 @@ Go to start.vertx.io and https://start.vertx.io/starter.zip?groupId=howto&artifa
 * Handlebars template engine
 * Vert.x Web Client
 
-image::images/project.png[width=600]
-
-This repository can be cloned and used as a basis for creating a new Eclipse Vert.x how-to.
-It especially contains the https://jekyllrb.com/[Jekyll] and continuous integration configurations for publishing a how-to as a web page.
-
+image::project.png[width=600]
 
 == Basics of Authentication
 
@@ -75,9 +69,9 @@ include::src/main/resources/views/index.hbs[]
 
 (If you're unfamiliar with how http://handlebarsjs.com/[Handlebars] works, we recommend reading the http://handlebarsjs.com/[Handlebars] guide.)
 
-Navigate your browser to http://localhost:8080. After clicking on the link, you should be taken to GitHub, and presented with a dialog that looks something like this::
+Navigate your browser to http://localhost:8080. After clicking on the link, you should be taken to GitHub, and presented with a dialog that looks something like this:
 
-image::images/authorize.png[width=600]
+image::authorize.png[width=600]
 
 After a successful app authentication, GitHub provides a temporary code value. This code is then `POST`ed back to GitHub in exchange for an `access_token` which is in turn translated to a `User` instance in your vert.x application. All this is taken care for you by the handler.
 
@@ -122,7 +116,7 @@ include::src/main/resources/views/protected.hbs[]
 
 And you should get a simple screen like this:
 
-image::images/emails.png[width=600]
+image::emails.png[width=600]
 
 == Implementing "persistent" authentication
 
