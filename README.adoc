@@ -134,6 +134,23 @@ include::src/main/java/howto/oauth_oidc/MainPersistentVerticle.java[tags=persist
 ----
 <1> A session handler using in memory storage will now be able to keep track of active users and you will not need to re-login on each request.
 
+
+=== Why persistence is important?
+
+While it may sound better to keep no state on the server, persistence has some benefits over stateless. When a session is available, your application will be safer. The reason is that Oauth2 uses `nonce/state` values during calls that can only be properly validated when a session is in place. With a session we ensure that `nonce` values are unique and not reusable so your application is protected against replay attacks.
+
+A second layer of optional protection is the use of https://datatracker.ietf.org/doc/html/rfc7636[Proof Key for Code Exchange]. PKCE adds another layer of security to the exchanges between your application and the Oauth2 server to enable it you only need to configure your handler as:
+
+[source,java]
+----
+OAuth2AuthHandler.create(vertx, authProvider)
+  .setupCallback(router.route("/callback"))
+  .withScope("user:email")
+  .pkceVerifierLength(64);  // <1>
+----
+<1> By specifying a length between 64 and 128 PKCE will be enabled
+
+
 == OpenID Connect
 
 Until this moment, we have been covering, plain `OAuth2`. Vert.x also allows you to use https://openid.net/connect/[OpenID Connect].
