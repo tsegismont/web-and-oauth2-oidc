@@ -8,9 +8,9 @@ import io.vertx.ext.auth.oauth2.providers.KeycloakAuth;
 public class KeycloakDiscoverVerticle extends AbstractVerticle {
 
   private static final String CLIENT_ID =
-    System.getenv("GITHUB_CLIENT_ID");
+    System.getenv("KEYCLOAK_CLIENT_ID");
   private static final String CLIENT_SECRET =
-    System.getenv("GITHUB_CLIENT_SECRET");
+    System.getenv("KEYCLOAK_CLIENT_SECRET");
 
   @Override
   public void start(Promise<Void> startPromise) {

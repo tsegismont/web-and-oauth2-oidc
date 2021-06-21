@@ -41,7 +41,7 @@ public class MainVerticle extends AbstractVerticle {
 
     router.get("/protected")                      // <5>
       .handler(
-        OAuth2AuthHandler.create(vertx, authProvider)   // <6>
+        OAuth2AuthHandler.create(vertx, authProvider, "http://localhost:8080/callback")   // <6>
           .setupCallback(router.route("/callback"))
           .withScope("user:email"))               // <7>
       .handler(ctx -> {
