@@ -1,4 +1,6 @@
 = Securing a Web Application with OAuth2/OpenId Connect
+:page-permalink: /
+:page-github: vertx-howtos/web-and-oauth2-oidc
 :author: Paulo Lopes <pmlopes@gmail.com>
 :toc:
 
