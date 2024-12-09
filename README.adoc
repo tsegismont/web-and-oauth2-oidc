@@ -1,27 +1,28 @@
-= Securing a Web Application with OAuth2/OpenId Connect
+= Securing a Web Application with OAuth2/OpenID Connect
 :page-permalink: /
 :page-github: vertx-howtos/web-and-oauth2-oidc
 :author: Paulo Lopes <pmlopes@gmail.com>
 :toc:
 
-This how to will show you how to build and secure a simple web vert.x application with Oauth2 and OpenId Connect.
+You will learn how to build and secure a simple web application with Vert.x, OAuth2 and OpenID Connect.
 
 == What you will build
 
-In the first part of the how-to, you will build a secure web application that will use GitHub to authenticate any application user. We will then continue exploring the API and use OpenId Connect to auto discover the security related configuration of the application.
+In the first part of the how-to, you will build a secure web application that will use GitHub to authenticate any application user.
+We will then continue exploring the API and use OpenID Connect to auto discover the security related configuration of the application.
 
 == What you need
 
 * A text editor or IDE
-* Java 8 or higher (11 recommended for the extra security algorithms)
-* GitHub account
+* Java 11 or higher
+* A GitHub account
 
 == Create a Project
 
 Go to start.vertx.io and https://start.vertx.io/starter.zip?groupId=howto&artifactId=oauth-oidc&vertxDependencies=vertx-web&vertx-auth-oauth2,vertx-web-templ-handlebars,vertx-web-client[create a project] with the following dependencies:
 
 * Vert.x Web
-* Oauth2
+* OAuth2
 * Handlebars template engine
 * Vert.x Web Client
 
@@ -29,26 +30,33 @@ image::project.png[width=600]
 
 == Basics of Authentication
 
-In this section, we're going to focus on the basics of authentication. Specifically, we're going to create a Java server that implements GitHub's https://docs.github.com/en/developers/apps/authorizing-oauth-apps[web application flow].
-
+In this section, we're going to focus on the basics of authentication.
+Specifically, we're going to create a Java server that implements GitHub's https://docs.github.com/en/developers/apps/authorizing-oauth-apps[web application flow].
 
 == Registering your app
 
-First, you'll need to https://github.com/settings/applications/new[register your application]. Every registered OAuth2 application is assigned a unique **Client ID** and **Client Secret**. The Client Secret should **NOT** be shared! That includes checking the string into your repository.
+First, you'll need to https://github.com/settings/applications/new[register your application].
+Every registered OAuth2 application is assigned a unique **Client ID** and **Client Secret**.
+The Client Secret should **NOT** be shared!
+That includes checking the string into your repository.
 
-You can fill out every piece of information however you like, except the **Authorization callback URL**. This is easily the most important piece to setting up your application. It's the callback URL that GitHub returns the user to after successful authentication.
+You can fill out every piece of information however you like, except the **Authorization callback URL**.
+This is easily the most important piece to setting up your application.
+It's the callback URL that GitHub returns the user to after successful authentication.
 
-Since we're running a regular Vert.x Web server, the location of the local instance is set to `http://localhost:8080`. Let's fill in the callback URL as `http://localhost:8080/callback`.
-
+Since we're running a regular Vert.x Web server, the location of the local instance is set to `http://localhost:8080`.
+Let's fill in the callback URL as `http://localhost:8080/callback`.
 
 == Accepting user authorization
 
-Now, let's start filling out our simple server. Open the class `howto.oauth_oidc.MainVerticle` and paste this into it:
+Now, let's start filling out our simple server.
+Open the class `howto.oauth_oidc.MainVerticle` and paste this into it:
 
 [source,java]
 ----
 include::src/main/java/howto/oauth_oidc/MainVerticle.java[]
 ----
+
 <1> We will read the secrets as environment variables
 <2> In order to use a handlebars we first need to create an engine
 <3> To simplify the development of the web components we use a Router to route all HTTP requests to organize our code in a reusable way.
@@ -58,9 +66,12 @@ include::src/main/java/howto/oauth_oidc/MainVerticle.java[]
 <7> For this resource we require that users have the authority to retrieve the user emails
 <8> Start up the server
 
-Your client ID and client secret keys come from https://github.com/settings/developers[your application's configuration page]. You should **NEVER**, **EVER** store these values in your git repository -- or any other public place, for that matter. We recommend storing them as http://en.wikipedia.org/wiki/Environment_variable#Getting_and_setting_environment_variables[environment variables] -- which is exactly what we've done here.
+Your client ID and client secret keys come from https://github.com/settings/developers[your application's configuration page].
+You should **NEVER**, **EVER** store these values in your git repository -- or any other public place, for that matter.
+We recommend storing them as http://en.wikipedia.org/wiki/Environment_variable#Getting_and_setting_environment_variables[environment variables] -- which is exactly what we've done here.
 
-Notice that the protected resource uses the scope `user:email` to define the scopes requested by the application. For our application, we're requesting `user:email` scope for reading private email addresses later in the how-to.
+Notice that the protected resource uses the scope `user:email` to define the scopes requested by the application.
+For our application, we're requesting `user:email` scope for reading private email addresses later in the how-to.
 
 Next, in the project `resources` create the template `views/index.hbs` and paste this content:
 
@@ -75,12 +86,14 @@ Navigate your browser to http://localhost:8080. After clicking on the link, you 
 
 image::authorize.png[width=600]
 
-After a successful app authentication, GitHub provides a temporary code value. This code is then posted back to GitHub in exchange for an `access_token` which is in turn translated to a `User` instance in your vert.x application. All this is taken care for you by the handler.
-
+After a successful app authentication, GitHub provides a temporary code value.
+This code is then posted back to GitHub in exchange for an `access_token` which is in turn translated to a `User` instance in your Vert.x application.
+All this is taken care for you by the handler.
 
 == Checking granted scopes
 
-Before the `User` object is handled to you, if your handler was configured with `authorities` they will be first checked. If they are not present then the whole process is aborted with an `Authorization (403)` error.
+Before the `User` object is handled to you, if your handler was configured with `authorities` they will be first checked.
+If they are not present then the whole process is aborted with an `Authorization (403)` error.
 
 However you might want to assert for other granted authorities, in this case you would add a intermediate handler such as:
 
@@ -91,25 +104,29 @@ AuthorizationHandler.create(
     .create("user:email"))          // <2>
     .addAuthorizationProvider(ScopeAuthorization.create(" ")))  // <3>
 ----
+
 <1> Create a kind of authorization, in this case it's a Permission
 <2> The `permission` we want to assert
 <3> The `provider` object will extract the right data from the user and perform the assertion
 
 Case the assertion fails, the router will stop executing and return a `Forbidden` error.
 
-
 == Making authenticated requests
 
-At this moment your application is already secure, and you can execute handlers knowing that the users are real GitHub users. You can now execute API calls on behalf of the user. For example, we could update the protected resource to print out the user registered email addresses, and some basic profile information from the `userInfo` end point.
+At this moment your application is already secure, and you can execute handlers knowing that the users are real GitHub users.
+You can now execute API calls on behalf of the user.
+For example, we could update the protected resource to print out the user registered email addresses, and some basic profile information from the `userInfo` end point.
 
 [source,java]
 ----
 include::src/main/java/howto/oauth_oidc/ProtectedProfileHandler.java[]
 ----
+
 <1> Get the user information from the OAuth2 userInfo endpoint
 <2> Make an API call on user behalf (using their access token)
 
-We can do whatever we want with our results. In this case, we'll just dump them straight into protected.hbs:
+We can do whatever we want with our results.
+In this case, we'll just dump them straight into protected.hbs:
 
 [source,handlebars]
 ----
@@ -122,11 +139,16 @@ image::emails.png[width=600]
 
 == Implementing "persistent" authentication
 
-It'd be a pretty bad model if we required users to log into the app every single time they needed to access the web page. For example, try navigating directly to http://localhost:8080/protected. You'll get an authentication request over and over.
+It'd be a pretty bad model if we required users to log into the app every single time they needed to access the web page.
+For example, try navigating directly to http://localhost:8080/protected.
+You'll get an authentication request over and over.
 
-What if we could circumvent the entire "click here" process, and just remember that, as long as the user's logged into GitHub, they should be able to access this application? Hold on to your hat, because that's _exactly what we're going to do_.
+What if we could circumvent the entire "click here" process, and just remember that, as long as the user's logged into GitHub, they should be able to access this application?
+Hold on to your hat, because that's _exactly what we're going to do_.
 
-Our little server above is rather simple. In order to wedge in some intelligent authentication, we're going to switch over to using sessions for storing tokens. This will make authentication transparent to the user.
+Our little server above is rather simple.
+In order to wedge in some intelligent authentication, we're going to switch over to using sessions for storing tokens.
+This will make authentication transparent to the user.
 
 This can be achieved with the stock handlers, so our server file would be:
 
@@ -134,14 +156,19 @@ This can be achieved with the stock handlers, so our server file would be:
 ----
 include::src/main/java/howto/oauth_oidc/MainPersistentVerticle.java[tags=persistent]
 ----
+
 <1> A session handler using in memory storage will now be able to keep track of active users and you will not need to re-login on each request.
 
 
 === Why persistence is important?
 
-While it may sound better to keep no state on the server, persistence has some benefits over stateless. When a session is available, your application will be safer. The reason is that Oauth2 uses `nonce/state` values during calls that can only be properly validated when a session is in place. With a session we ensure that `nonce` values are unique and not reusable so your application is protected against replay attacks.
+While it may sound better to keep no state on the server, persistence has some benefits over stateless.
+When a session is available, your application will be safer.
+The reason is that OAuth2 uses `nonce/state` values during calls that can only be properly validated when a session is in place.
+With a session we ensure that `nonce` values are unique and not reusable so your application is protected against replay attacks.
 
-A second layer of optional protection is the use of https://datatracker.ietf.org/doc/html/rfc7636[Proof Key for Code Exchange]. PKCE adds another layer of security to the exchanges between your application and the Oauth2 server to enable it you only need to configure your handler as:
+A second layer of optional protection is the use of https://datatracker.ietf.org/doc/html/rfc7636[Proof Key for Code Exchange].
+PKCE adds another layer of security to the exchanges between your application and the OAuth2 server to enable it you only need to configure your handler as:
 
 [source,java]
 ----
@@ -150,25 +177,34 @@ OAuth2AuthHandler.create(vertx, authProvider)
   .withScope("user:email")
   .pkceVerifierLength(64);  // <1>
 ----
-<1> By specifying a length between 64 and 128 PKCE will be enabled
 
+<1> By specifying a length between 64 and 128 PKCE will be enabled
 
 == OpenID Connect
 
-Until this moment, we have been covering, plain `OAuth2`. Vert.x also allows you to use https://openid.net/connect/[OpenID Connect].
+Until this moment, we have been covering, plain `OAuth2`.
+Vert.x also allows you to use https://openid.net/connect/[OpenID Connect].
 
-In a nutshell, OpenID Connect is a simple identity layer on top of the OAuth 2.0 protocol. The main differences are that tokens, are not opaque strings, but encoded in JSON Web Token format. This allows applications to have more fine-grained control on permissions/roles and reduce the number of round-trips to the IdP server. This also means that you will need to know much more information at front to start the application. For example, a few extra HTTP endpoints, security keys, etc...
+In a nutshell, OpenID Connect is a simple identity layer on top of the OAuth 2.0 protocol.
+The main differences are that tokens, are not opaque strings, but encoded in JSON Web Token format.
+This allows applications to have more fine-grained control on permissions/roles and reduce the number of round-trips to the IdP server.
+This also means that you will need to know much more information at front to start the application.
+For example, a few extra HTTP endpoints, security keys, etc...
 
-Albeit this looking more complex, OpenID, defines a discovery API, which simplifies the setup to just a few lines of code. Instead of having you to know all the properties you can just (for example) discover the configuration if you're using https://www.keycloak.org/[keycloak]:
+Albeit this looking more complex, OpenID, defines a discovery API, which simplifies the setup to just a few lines of code.
+Instead of having you to know all the properties you can just (for example) discover the configuration if you're using https://www.keycloak.org/[keycloak]:
 
 [source,java]
 ----
 include::src/main/java/howto/oauth_oidc/KeycloakDiscoverVerticle.java[]
 ----
+
 <1> Keycloak can host multiple applications so we can specify a tenant name
 <2> Keycloak server URL
 
-The discovery process will perform the configuration of all known HTTP endpoints, and load security keys used to validated tokens. Once ready  an instance of `OAuth2Auth` is returned like before. It is important here that you did not have to load and configure all this manually.
+The discovery process will perform the configuration of all known HTTP endpoints, and load security keys used to validated tokens.
+Once ready an instance of `OAuth2Auth` is returned like before.
+It is important here that you did not have to load and configure all this manually.
 
 `Discovery` is a standard so you can use it with other services (that support it), for example (in no particular order):
 
@@ -178,19 +214,17 @@ The discovery process will perform the configuration of all known HTTP endpoints
 * Amazon Incognito
 * etc...
 
-
 == Summary
 
 In this how-to we covered:
 
 1. Creating a web project
-2. Secure a web application with Oauth2
-3. Invoke secure APIs with WebClient and Oauth2
+2. Secure a web application with OAuth2
+3. Invoke secure APIs with WebClient and OAuth2
 4. Persist user session data
 5. Use OpenID Connect
 
 I hope you now can use OAuth2 on your next project!
-
 
 == See also
 
