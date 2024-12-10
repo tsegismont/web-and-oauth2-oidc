@@ -59,10 +59,10 @@ include::src/main/java/howto/oauth_oidc/MainVerticle.java[]
 
 <1> We will read the secrets as environment variables
 <2> In order to use a handlebars we first need to create an engine
-<3> To simplify the development of the web components we use a Router to route all HTTP requests to organize our code in a reusable way.
+<3> To simplify the development of the web components we use a `Router` to route all HTTP requests to organize our code in a reusable way.
 <4> Entry point to the application, this will render a custom template.
 <5> The protected resource (not really protected yet)
-<6> We now configure the oauth2 handler, it will setup the callback handler (as defined in GitHub Application panel)
+<6> We now configure the OAuth2 handler, it will set up the callback handler (as defined in GitHub Application panel)
 <7> For this resource we require that users have the authority to retrieve the user emails
 <8> Start up the server
 
@@ -95,7 +95,7 @@ All this is taken care for you by the handler.
 Before the `User` object is handled to you, if your handler was configured with `authorities` they will be first checked.
 If they are not present then the whole process is aborted with an `Authorization (403)` error.
 
-However you might want to assert for other granted authorities, in this case you would add a intermediate handler such as:
+However, you might want to assert for other granted authorities, in this case you would add an intermediate handler such as:
 
 [source,java]
 ----
@@ -157,7 +157,7 @@ This can be achieved with the stock handlers, so our server file would be:
 include::src/main/java/howto/oauth_oidc/MainPersistentVerticle.java[tags=persistent]
 ----
 
-<1> A session handler using in memory storage will now be able to keep track of active users and you will not need to re-login on each request.
+<1> A session handler using in memory storage will now be able to keep track of active users, and you will not need to re-login on each request.
 
 
 === Why persistence is important?

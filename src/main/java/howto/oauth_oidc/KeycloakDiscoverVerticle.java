@@ -15,7 +15,7 @@ public class KeycloakDiscoverVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) {
     OAuth2Options options = new OAuth2Options()
-      .setClientID(CLIENT_ID)
+      .setClientId(CLIENT_ID)
       .setClientSecret(CLIENT_SECRET)
       .setTenant("vertx-test")          // <1>
       .setSite("https://your.keycloak.instance/auth/realms/{tenant}"); // <2>

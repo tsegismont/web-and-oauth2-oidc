@@ -1,14 +1,14 @@
 package howto.oauth_oidc;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
-public class MainVerticle extends AbstractVerticle {
+public class MainVerticle extends VerticleBase {
 
   private static final String CLIENT_ID =
     System.getenv("GITHUB_CLIENT_ID");
@@ -16,7 +16,7 @@ public class MainVerticle extends AbstractVerticle {
     System.getenv("GITHUB_CLIENT_SECRET");  // <1>
 
   @Override
-  public void start(Promise<Void> startPromise) {
+  public Future<?> start() {
 
     HandlebarsTemplateEngine engine =
       HandlebarsTemplateEngine.create(vertx);     // <2>
@@ -49,13 +49,9 @@ public class MainVerticle extends AbstractVerticle {
           .end("Hello protected!");
       });
 
-    vertx.createHttpServer()                      // <8>
+    return vertx.createHttpServer()                      // <8>
       .requestHandler(router)
       .listen(Integer.getInteger("port", 8080))
-      .onSuccess(server -> {
-        System.out.println(
-          "HTTP server started on port: " + server.actualPort());
-        startPromise.complete();
-      }).onFailure(startPromise::fail);
+      .onSuccess(server -> System.out.println("HTTP server started on port: " + server.actualPort()));
   }
 }

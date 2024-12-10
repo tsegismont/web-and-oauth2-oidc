@@ -21,7 +21,7 @@ class ProtectedProfileHandler implements Handler<RoutingContext> {
   @Override
   public void handle(RoutingContext ctx) {
     authProvider
-      .userInfo(ctx.user())       // <1>
+      .userInfo(ctx.user().get())       // <1>
       .onFailure(err -> {
         ctx.session().destroy();
         ctx.fail(err);
@@ -30,7 +30,7 @@ class ProtectedProfileHandler implements Handler<RoutingContext> {
         // fetch the user emails from the github API
         WebClient.create(ctx.vertx())
           .getAbs("https://api.github.com/user/emails")
-          .authentication(new TokenCredentials(ctx.user().<String>get("access_token"))) // <2>
+          .authentication(new TokenCredentials(ctx.user().get().<String>get("access_token"))) // <2>
           .as(BodyCodec.jsonArray())
           .send()
           .onFailure(err -> {
